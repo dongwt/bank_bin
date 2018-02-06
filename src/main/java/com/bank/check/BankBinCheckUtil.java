@@ -25,10 +25,10 @@ import java.util.Map;
  */
 public class BankBinCheckUtil {
 
-    private static final String[] READ_FILE_HEADER = {"类型", "渠道编号", "渠道上送账户编号", "渠道来源",
+    public static final String[] READ_FILE_HEADER = {"类型", "渠道编号", "渠道上送账户编号", "渠道来源",
             "收款账户名称", "收款账号", "收款银行名称","商户id", "打款失败次数", "最近打款时间"};
 
-    private static final String[] WRITE_FILE_HEADER = {"类型", "渠道编号", "渠道上送账户编号", "渠道来源",
+    public static final String[] WRITE_FILE_HEADER = {"类型", "渠道编号", "渠道上送账户编号", "渠道来源",
             "收款账户名称", "收款账号", "收款银行名称","商户id", "正确的收款银行名称", "打款失败次数", "最近打款时间"};
 
     private static final String BANK_CARD = "BANK_CARD";
@@ -150,6 +150,43 @@ public class BankBinCheckUtil {
             try {
                 in.close();
                 out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 检查是否存在绑卡错误的数据
+     * @param fileNamePath
+     */
+    public static void checkBindErrorBanks(String fileNamePath,String[] READ_FILE_HEADER){
+        Reader in = null;
+        try {
+            in = new FileReader(fileNamePath);
+            // 这里显式地配置一下CSV文件的Header，然后设置跳过Header
+            CSVFormat readFormat = CSVFormat.DEFAULT.withHeader(READ_FILE_HEADER).withSkipHeaderRecord();
+            Iterable<CSVRecord> records = readFormat.parse(in);
+            List<CSVRecord> recordList = IteratorUtils.toList(records.iterator());
+            System.out.println("需查询" + recordList.size() + "条数据。");
+            int i = 1;
+            for (CSVRecord record : recordList) {
+                System.out.println("当前第" + i + "条");
+                Response response = getCardInfo(record.get("收款账号"));
+                String bankName = (String) bankMap.get(response.getBank());
+                if (StringUtils.isNotBlank(bankName) && !record.get("正确的收款银行名称").equals(bankName)) {
+                    System.out.println("银行名称不匹配-------------");
+                    System.out.println("old bank data: " + JSONObject.toJSONString(record.toMap()));
+                    System.out.println("new bank data: " + JSONObject.toJSONString(response));
+                    return;
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

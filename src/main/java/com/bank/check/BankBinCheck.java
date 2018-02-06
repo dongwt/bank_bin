@@ -6,6 +6,8 @@ package com.bank.check;
 public class BankBinCheck {
 
     public static void main(String[] args){
-        BankBinCheckUtil.generateBindErrorBanks("/Users/dongwt/Desktop/test.csv","/Users/dongwt/Desktop/result.csv");
+//        BankBinCheckUtil.generateBindErrorBanks("/Users/dongwt/Desktop/test.csv","/Users/dongwt/Desktop/result.csv");
+
+        BankBinCheckUtil.checkBindErrorBanks("/Users/dongwt/Desktop/result.csv",BankBinCheckUtil.WRITE_FILE_HEADER);
     }
 }
