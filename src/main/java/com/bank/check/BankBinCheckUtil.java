@@ -26,10 +26,10 @@ import java.util.Map;
 public class BankBinCheckUtil {
 
     private static final String[] READ_FILE_HEADER = {"类型", "渠道编号", "渠道上送账户编号", "渠道来源",
-            "收款账户名称", "收款账号", "收款银行名称", "打款失败次数", "最近打款时间"};
+            "收款账户名称", "收款账号", "收款银行名称","商户id", "打款失败次数", "最近打款时间"};
 
     private static final String[] WRITE_FILE_HEADER = {"类型", "渠道编号", "渠道上送账户编号", "渠道来源",
-            "收款账户名称", "收款账号", "收款银行名称", "正确的收款银行名称", "打款失败次数", "最近打款时间"};
+            "收款账户名称", "收款账号", "收款银行名称","商户id", "正确的收款银行名称", "打款失败次数", "最近打款时间"};
 
     private static final String BANK_CARD = "BANK_CARD";
 
@@ -126,6 +126,7 @@ public class BankBinCheckUtil {
                     datas.add(record.get("收款账户名称"));
                     datas.add(record.get("收款账号"));
                     datas.add(record.get("收款银行名称"));
+                    datas.add(record.get("商户id"));
                     if (response.isValidated()) {
                         if (StringUtils.isNotBlank(bankName)) {
                             datas.add(bankName);
