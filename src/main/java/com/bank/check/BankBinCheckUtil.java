@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * 卡bin校验工具类
@@ -46,7 +47,7 @@ public class BankBinCheckUtil {
     private static Map getBankMap() {
         FileReader reader = null;
         try {
-            ClassLoader classLoader = BankBinCheck.class.getClassLoader();
+            ClassLoader classLoader = BankBinCheckUtil.class.getClassLoader();
             URL url = classLoader.getResource(bankNamePath);
             reader = new FileReader(url.getFile());
             BufferedReader br = new BufferedReader(reader);
@@ -187,6 +188,62 @@ public class BankBinCheckUtil {
         } finally {
             try {
                 in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public static void getNoMatchBank(String fileNamePath,String descFileName,String[] fileHeader){
+        Reader in = null;
+        Writer out = null;
+        try {
+            in = new FileReader(fileNamePath);
+            // 这里显式地配置一下CSV文件的Header，然后设置跳过Header
+            CSVFormat readFormat = CSVFormat.DEFAULT.withHeader(fileHeader).withSkipHeaderRecord();
+            Iterable<CSVRecord> records = readFormat.parse(in);
+            List<CSVRecord> recordList = IteratorUtils.toList(records.iterator());
+
+            //写文件
+            out = new FileWriter(descFileName);
+            CSVFormat writeFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
+            CSVPrinter printer = new CSVPrinter(out, writeFormat);
+            printer.printRecord(fileHeader);
+
+            System.out.println("需查询" + recordList.size() + "条数据。");
+            String regex = "^[\\u4e00-\\u9fa5]*$";
+            Pattern pattern = Pattern.compile(regex);
+            int i = 1;
+            for (CSVRecord record : recordList) {
+                System.out.println("当前第" + i + "条");
+                i++;
+                String bankName = record.get("正确的收款银行名称");
+                if(pattern.matcher(bankName).find()){
+                    continue;
+                }
+
+                System.out.println("bankName:" + bankName);
+                List<String> datas = new ArrayList<>();
+                datas.add(record.get("类型"));
+                datas.add(record.get("渠道编号"));
+                datas.add(record.get("渠道上送账户编号"));
+                datas.add(record.get("渠道来源"));
+                datas.add(record.get("收款账户名称"));
+                datas.add(record.get("收款账号"));
+                datas.add(record.get("收款银行名称"));
+                datas.add(record.get("正确的收款银行名称"));
+                datas.add(record.get("打款失败次数"));
+                datas.add(record.get("最近打款时间"));
+
+                printer.printRecord(datas);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
